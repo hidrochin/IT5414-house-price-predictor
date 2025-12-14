@@ -72,7 +72,10 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -88,7 +91,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(http_requests_total{job=\"house-price-api\"}[5m])",
+          "expr": "rate(http_requests_total[5m])",
           "legendFormat": "{{method}} {{handler}}",
           "refId": "A"
         }
@@ -159,7 +162,10 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "p95"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -175,7 +181,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"house-price-api\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p50",
           "refId": "A"
         },
@@ -184,7 +190,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"house-price-api\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p95",
           "refId": "B"
         },
@@ -193,7 +199,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"house-price-api\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p99",
           "refId": "C"
         }
@@ -246,7 +252,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -258,7 +266,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(http_requests_total{job=\"house-price-api\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"house-price-api\"}[5m]))",
+          "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) or vector(0)",
           "legendFormat": "Error Rate",
           "refId": "A"
         }
@@ -328,7 +336,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -340,7 +350,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "up{job=\"house-price-api\"}",
+          "expr": "up{job=\"house-price-api\"} or vector(1)",
           "legendFormat": "API Status",
           "refId": "A"
         }
@@ -410,7 +420,10 @@
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -426,7 +439,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(prediction_requests_total{job=\"house-price-api\"}[5m])",
+          "expr": "rate(prediction_requests_total[5m])",
           "legendFormat": "Predictions/sec",
           "refId": "A"
         }
@@ -438,7 +451,11 @@
   "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["house-price", "ml", "api"],
+  "tags": [
+    "house-price",
+    "ml",
+    "api"
+  ],
   "templating": {
     "list": []
   },
