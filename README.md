@@ -8,26 +8,34 @@ Dự án Machine Learning end-to-end dự đoán giá nhà, áp dụng các nguy
 
 ```
 IT5414-house-price-predictor/
+├── .github/
+│   └── workflows/
+│       └── ci.yaml             # GitHub Actions CI workflow
 ├── configs/                    # Cấu hình model
 │   └── model_config.yaml
 ├── data/
 │   ├── raw/                    # Dữ liệu gốc
 │   └── processed/              # Dữ liệu đã xử lý
 ├── deployment/
-│   └── mlflow/                 # Docker Compose cho MLflow
+│   ├── argocd/                 # ArgoCD Application config
+│   ├── kubernetes/             # K8s manifests (api, ui, namespace)
+│   ├── mlflow/                 # Docker Compose cho MLflow
+│   └── monitoring/             # Prometheus & Grafana configs
 ├── models/
 │   └── trained/                # Model và preprocessor đã train
 ├── notebooks/                  # Jupyter notebooks thử nghiệm
 ├── src/
-│   ├── api/                    # FastAPI backend
+│   ├── api/                    # FastAPI backend (with Prometheus metrics)
 │   ├── data/                   # Script xử lý dữ liệu
 │   ├── features/               # Feature engineering
 │   └── models/                 # Training scripts
 ├── streamlit_app/              # Giao diện Streamlit
+├── tests/                      # Unit tests
 ├── Dockerfile                  # Docker cho FastAPI
-├── docker-compose.yaml         # Orchestration
+├── docker-compose.yaml         # Orchestration (API, UI, Prometheus, Grafana)
 └── requirements.txt
 ```
+
 
 ---
 
@@ -191,9 +199,100 @@ docker compose up -d
 
 ## 🧪 Model Performance
 
-- **Algorithm**: XGBoost
-- **MAE**: 17,497.87
-- **R² Score**: 0.9779
+- **Algorithm**: GradientBoosting
+- **MAE**: 6,879.37
+- **R² Score**: 0.9985
+
+---
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions (CI)
+
+Workflow tự động chạy khi push/PR vào `main`:
+
+```yaml
+# .github/workflows/ci.yaml
+Jobs:
+  1. Lint & Format Check (flake8, black)
+  2. Run Tests (pytest)
+  3. Build Docker Images
+  4. Push to GitHub Container Registry
+```
+
+**Xem CI runs:** https://github.com/hidrochin/IT5414-house-price-predictor/actions
+
+### ArgoCD (CD)
+
+GitOps-based deployment với Kubernetes:
+
+```bash
+# Cài đặt ArgoCD (nếu có K8s cluster)
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Deploy ứng dụng
+kubectl apply -f deployment/argocd/application.yaml
+```
+
+**Kubernetes manifests:**
+- `deployment/kubernetes/namespace.yaml` - Namespace
+- `deployment/kubernetes/api/` - FastAPI Deployment & Service
+- `deployment/kubernetes/ui/` - Streamlit Deployment & Service
+
+---
+
+## 📊 Monitoring với Prometheus & Grafana
+
+### Khởi động Monitoring Stack
+
+```bash
+docker compose up -d
+```
+
+### Truy cập Monitoring
+
+| Dịch vụ | URL | Credentials |
+|---------|-----|-------------|
+| **Prometheus** | http://localhost:9090 | N/A |
+| **Grafana** | http://localhost:3000 | admin / admin123 |
+| **API Metrics** | http://localhost:8000/metrics | N/A |
+
+### Metrics được thu thập
+
+- `http_requests_total` - Tổng số requests
+- `http_request_duration_seconds` - Latency (p50, p95, p99)
+- `prediction_requests_total` - Số lượng predictions
+- `prediction_latency_seconds` - Thời gian xử lý prediction
+
+### Cấu trúc Monitoring
+
+```
+deployment/monitoring/
+├── prometheus/
+│   └── prometheus.yaml          # Scrape config
+└── grafana/
+    └── provisioning/
+        ├── dashboards/
+        │   └── house-price-api.json  # Dashboard
+        └── datasources/
+            └── datasources.yaml      # Prometheus datasource
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Cài đặt test dependencies
+pip install pytest httpx
+
+# Chạy tests
+pytest tests/ -v
+
+# Chạy tests với coverage
+pytest tests/ -v --cov=src/api
+```
 
 ---
 
