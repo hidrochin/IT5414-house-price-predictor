@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy API source code and requirements
 COPY src/api/ ./
-COPY models/trained/ ./models/trained/
+COPY models/trained/*.pkl ./models/trained/
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
