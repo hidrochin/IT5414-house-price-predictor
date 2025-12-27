@@ -36,11 +36,15 @@ spec:
             httpGet:
               path: /_stcore/health
               port: 8501
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /_stcore/health
               port: 8501
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3

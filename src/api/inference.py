@@ -14,15 +14,16 @@ try:
 except Exception as e:
     raise RuntimeError(f"Error loading model or preprocessor: {str(e)}")
 
+
 def predict_price(request: HousePredictionRequest) -> PredictionResponse:
     """
     Predict house price based on input features.
     """
     # Prepare input data
     input_data = pd.DataFrame([request.dict()])
-    input_data['house_age'] = datetime.now().year - input_data['year_built']
-    input_data['bed_bath_ratio'] = input_data['bedrooms'] / input_data['bathrooms']
-    input_data['price_per_sqft'] = 0  # Dummy value for compatibility
+    input_data["house_age"] = datetime.now().year - input_data["year_built"]
+    input_data["bed_bath_ratio"] = input_data["bedrooms"] / input_data["bathrooms"]
+    input_data["price_per_sqft"] = 0  # Dummy value for compatibility
 
     # Preprocess input data
     processed_features = preprocessor.transform(input_data)
@@ -43,17 +44,22 @@ def predict_price(request: HousePredictionRequest) -> PredictionResponse:
         predicted_price=predicted_price,
         confidence_interval=confidence_interval,
         features_importance={},
-        prediction_time=datetime.now().isoformat()
+        prediction_time=datetime.now().isoformat(),
     )
+
 
 def batch_predict(requests: list[HousePredictionRequest]) -> list[float]:
     """
     Perform batch predictions.
     """
+    # Handle empty input
+    if not requests:
+        return []
+
     input_data = pd.DataFrame([req.dict() for req in requests])
-    input_data['house_age'] = datetime.now().year - input_data['year_built']
-    input_data['bed_bath_ratio'] = input_data['bedrooms'] / input_data['bathrooms']
-    input_data['price_per_sqft'] = 0  # Dummy value for compatibility
+    input_data["house_age"] = datetime.now().year - input_data["year_built"]
+    input_data["bed_bath_ratio"] = input_data["bedrooms"] / input_data["bathrooms"]
+    input_data["price_per_sqft"] = 0  # Dummy value for compatibility
 
     # Preprocess input data
     processed_features = preprocessor.transform(input_data)

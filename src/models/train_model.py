@@ -18,8 +18,9 @@ import sklearn
 # -----------------------------
 # Configure logging
 # -----------------------------
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 # -----------------------------
 # Argument parser
@@ -32,36 +33,38 @@ def parse_args():
     parser.add_argument("--mlflow-tracking-uri", type=str, default=None, help="MLflow tracking URI")
     return parser.parse_args()
 
+
 # -----------------------------
 # Load model from config
 # -----------------------------
 def get_model_instance(name, params):
     model_map = {
-        'LinearRegression': LinearRegression,
-        'RandomForest': RandomForestRegressor,
-        'GradientBoosting': GradientBoostingRegressor,
-        'XGBoost': xgb.XGBRegressor
+        "LinearRegression": LinearRegression,
+        "RandomForest": RandomForestRegressor,
+        "GradientBoosting": GradientBoostingRegressor,
+        "XGBoost": xgb.XGBRegressor,
     }
     if name not in model_map:
         raise ValueError(f"Unsupported model: {name}")
     return model_map[name](**params)
+
 
 # -----------------------------
 # Main logic
 # -----------------------------
 def main(args):
     # Load config
-    with open(args.config, 'r') as f:
+    with open(args.config, "r") as f:
         config = yaml.safe_load(f)
-    model_cfg = config['model']
+    model_cfg = config["model"]
 
     if args.mlflow_tracking_uri:
         mlflow.set_tracking_uri(args.mlflow_tracking_uri)
-        mlflow.set_experiment(model_cfg['name'])
+        mlflow.set_experiment(model_cfg["name"])
 
     # Load data
     data = pd.read_csv(args.data)
-    target = model_cfg['target_variable']
+    target = model_cfg["target_variable"]
 
     # Use all features except the target variable
     X = data.drop(columns=[target])
@@ -69,7 +72,7 @@ def main(args):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Get model
-    model = get_model_instance(model_cfg['best_model'], model_cfg['parameters'])
+    model = get_model_instance(model_cfg["best_model"], model_cfg["parameters"])
 
     # Start MLflow run
     with mlflow.start_run(run_name="final_training"):
@@ -81,12 +84,12 @@ def main(args):
         r2 = float(r2_score(y_test, y_pred))
 
         # Log params and metrics
-        mlflow.log_params(model_cfg['parameters'])
-        mlflow.log_metrics({'mae': mae, 'r2': r2})
+        mlflow.log_params(model_cfg["parameters"])
+        mlflow.log_metrics({"mae": mae, "r2": r2})
 
         # Log and register model
         mlflow.sklearn.log_model(model, "tuned_model")
-        model_name = model_cfg['name']
+        model_name = model_cfg["name"]
         model_uri = f"runs:/{mlflow.active_run().info.run_id}/tuned_model"
 
         logger.info("Registering model to MLflow Model Registry...")
@@ -97,17 +100,11 @@ def main(args):
             pass  # already exists
 
         model_version = client.create_model_version(
-            name=model_name,
-            source=model_uri,
-            run_id=mlflow.active_run().info.run_id
+            name=model_name, source=model_uri, run_id=mlflow.active_run().info.run_id
         )
 
         # Transition model to "Staging"
-        client.transition_model_version_stage(
-            name=model_name,
-            version=model_version.version,
-            stage="Staging"
-        )
+        client.transition_model_version_stage(name=model_name, version=model_version.version, stage="Staging")
 
         # Add a human-readable description
         description = (
@@ -125,8 +122,8 @@ def main(args):
         client.update_registered_model(name=model_name, description=description)
 
         # Add tags for better organization
-        client.set_registered_model_tag(model_name, "algorithm", model_cfg['best_model'])
-        client.set_registered_model_tag(model_name, "hyperparameters", str(model_cfg['parameters']))
+        client.set_registered_model_tag(model_name, "algorithm", model_cfg["best_model"])
+        client.set_registered_model_tag(model_name, "hyperparameters", str(model_cfg["parameters"]))
         client.set_registered_model_tag(model_name, "features", "All features except target variable")
         client.set_registered_model_tag(model_name, "target_variable", target)
         client.set_registered_model_tag(model_name, "training_dataset", args.data)
@@ -148,6 +145,7 @@ def main(args):
         joblib.dump(model, save_path)
         logger.info(f"Saved trained model to: {save_path}")
         logger.info(f"Final MAE: {mae:.2f}, R²: {r2:.4f}")
+
 
 if __name__ == "__main__":
     args = parse_args()

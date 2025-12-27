@@ -6,16 +6,8 @@ from inference import predict_price, batch_predict
 from schemas import HousePredictionRequest, PredictionResponse
 
 # Custom Prometheus metrics
-PREDICTION_COUNTER = Counter(
-    "prediction_requests_total",
-    "Total number of prediction requests",
-    ["endpoint"]
-)
-PREDICTION_LATENCY = Histogram(
-    "prediction_latency_seconds",
-    "Time spent processing prediction requests",
-    ["endpoint"]
-)
+PREDICTION_COUNTER = Counter("prediction_requests_total", "Total number of prediction requests", ["endpoint"])
+PREDICTION_LATENCY = Histogram("prediction_latency_seconds", "Time spent processing prediction requests", ["endpoint"])
 
 # Initialize FastAPI app with metadata
 app = FastAPI(
@@ -48,25 +40,30 @@ app.add_middleware(
 # Initialize Prometheus instrumentator
 Instrumentator().instrument(app).expose(app)
 
+
 # Health check endpoint
 @app.get("/health", response_model=dict)
 async def health_check():
     return {"status": "healthy", "model_loaded": True}
 
+
 # Prediction endpoint
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(request: HousePredictionRequest):
     import time
+
     start_time = time.time()
     PREDICTION_COUNTER.labels(endpoint="predict").inc()
     result = predict_price(request)
     PREDICTION_LATENCY.labels(endpoint="predict").observe(time.time() - start_time)
     return result
 
+
 # Batch prediction endpoint
 @app.post("/batch-predict", response_model=list)
 async def batch_predict_endpoint(requests: list[HousePredictionRequest]):
     import time
+
     start_time = time.time()
     PREDICTION_COUNTER.labels(endpoint="batch_predict").inc()
     result = batch_predict(requests)
