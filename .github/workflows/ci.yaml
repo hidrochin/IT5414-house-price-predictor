@@ -63,19 +63,14 @@ jobs:
           from sklearn.preprocessing import OneHotEncoder
           from sklearn.pipeline import Pipeline
           from sklearn.impute import SimpleImputer
-          
-          # Create dummy model
-          model = GradientBoostingRegressor(n_estimators=10, random_state=42)
           import numpy as np
-          X_dummy = np.random.rand(100, 6)
-          y_dummy = np.random.rand(100)
-          model.fit(X_dummy, y_dummy)
-          joblib.dump(model, 'models/trained/house_price_model.pkl')
+          import pandas as pd
           
-          # Create dummy preprocessor
+          # Define features (must match inference.py)
           numerical_features = ['sqft', 'bedrooms', 'bathrooms', 'house_age', 'price_per_sqft', 'bed_bath_ratio']
           categorical_features = ['location', 'condition']
           
+          # Create preprocessor
           numerical_transformer = Pipeline(steps=[
               ('imputer', SimpleImputer(strategy='mean'))
           ])
@@ -91,19 +86,29 @@ jobs:
               ]
           )
           
-          # Fit with dummy data
-          import pandas as pd
+          # Create dummy training data
           dummy_df = pd.DataFrame({
-              'sqft': [1000, 2000],
-              'bedrooms': [2, 3],
-              'bathrooms': [1, 2],
-              'house_age': [10, 20],
-              'price_per_sqft': [100, 150],
-              'bed_bath_ratio': [2, 1.5],
-              'location': ['urban', 'suburban'],
-              'condition': ['Good', 'Excellent']
+              'sqft': [1000, 2000, 1500, 3000, 2500],
+              'bedrooms': [2, 3, 3, 4, 3],
+              'bathrooms': [1, 2, 2, 3, 2],
+              'house_age': [10, 20, 15, 5, 25],
+              'price_per_sqft': [100, 150, 120, 200, 130],
+              'bed_bath_ratio': [2, 1.5, 1.5, 1.33, 1.5],
+              'location': ['urban', 'suburban', 'rural', 'urban', 'suburban'],
+              'condition': ['Good', 'Excellent', 'Fair', 'Good', 'Excellent']
           })
-          preprocessor.fit(dummy_df)
+          y_dummy = np.array([200000, 350000, 280000, 450000, 380000])
+          
+          # Fit preprocessor and transform
+          X_transformed = preprocessor.fit_transform(dummy_df)
+          print(f'Transformed features shape: {X_transformed.shape}')
+          
+          # Train model on transformed features
+          model = GradientBoostingRegressor(n_estimators=10, random_state=42)
+          model.fit(X_transformed, y_dummy)
+          
+          # Save model and preprocessor
+          joblib.dump(model, 'models/trained/house_price_model.pkl')
           joblib.dump(preprocessor, 'models/trained/preprocessor.pkl')
           print('Created test model files successfully')
           "
@@ -148,22 +153,11 @@ jobs:
           import numpy as np
           import pandas as pd
           
-          # Create model with production hyperparameters
-          model = GradientBoostingRegressor(
-              n_estimators=300,
-              learning_rate=0.1,
-              max_depth=3,
-              random_state=42
-          )
-          X_dummy = np.random.rand(1000, 6)
-          y_dummy = np.random.rand(1000) * 500000 + 100000
-          model.fit(X_dummy, y_dummy)
-          joblib.dump(model, 'models/trained/house_price_model.pkl')
-          
-          # Create preprocessor
+          # Define features (must match inference.py)
           numerical_features = ['sqft', 'bedrooms', 'bathrooms', 'house_age', 'price_per_sqft', 'bed_bath_ratio']
           categorical_features = ['location', 'condition']
           
+          # Create preprocessor
           preprocessor = ColumnTransformer(
               transformers=[
                   ('num', Pipeline([('imputer', SimpleImputer(strategy='mean'))]), numerical_features),
@@ -171,17 +165,34 @@ jobs:
               ]
           )
           
+          # Create training data with all categorical values
           dummy_df = pd.DataFrame({
-              'sqft': [1000, 2000, 3000],
-              'bedrooms': [2, 3, 4],
-              'bathrooms': [1, 2, 3],
-              'house_age': [10, 20, 5],
-              'price_per_sqft': [100, 150, 200],
-              'bed_bath_ratio': [2, 1.5, 1.33],
-              'location': ['urban', 'suburban', 'rural'],
-              'condition': ['Good', 'Excellent', 'Fair']
+              'sqft': [1000, 2000, 3000, 1500, 2500],
+              'bedrooms': [2, 3, 4, 3, 3],
+              'bathrooms': [1, 2, 3, 2, 2],
+              'house_age': [10, 20, 5, 15, 25],
+              'price_per_sqft': [100, 150, 200, 120, 140],
+              'bed_bath_ratio': [2, 1.5, 1.33, 1.5, 1.5],
+              'location': ['urban', 'suburban', 'rural', 'urban', 'suburban'],
+              'condition': ['Good', 'Excellent', 'Fair', 'Good', 'Excellent']
           })
-          preprocessor.fit(dummy_df)
+          y_dummy = np.array([200000, 350000, 450000, 280000, 380000])
+          
+          # Fit preprocessor and transform
+          X_transformed = preprocessor.fit_transform(dummy_df)
+          print(f'Transformed features shape: {X_transformed.shape}')
+          
+          # Create and train model on transformed features
+          model = GradientBoostingRegressor(
+              n_estimators=300,
+              learning_rate=0.1,
+              max_depth=3,
+              random_state=42
+          )
+          model.fit(X_transformed, y_dummy)
+          
+          # Save model and preprocessor
+          joblib.dump(model, 'models/trained/house_price_model.pkl')
           joblib.dump(preprocessor, 'models/trained/preprocessor.pkl')
           print('Created production model files')
           "
