@@ -16,7 +16,7 @@ app = FastAPI(
         "An API for predicting house prices based on various features. "
         "This application is part of the IT5414 Machine Learning course project."
     ),
-    version="1.0.0",
+    version="2.0.0",
     contact={
         "name": "IT5414 Team",
         "url": "https://schoolofdevops.com",
