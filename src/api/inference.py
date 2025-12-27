@@ -20,7 +20,7 @@ def predict_price(request: HousePredictionRequest) -> PredictionResponse:
     Predict house price based on input features.
     """
     # Prepare input data (model_dump for Pydantic v2 compatibility)
-    request_dict = request.model_dump() if hasattr(request, 'model_dump') else request.dict()
+    request_dict = request.model_dump() if hasattr(request, "model_dump") else request.dict()
     input_data = pd.DataFrame([request_dict])
     input_data["house_age"] = datetime.now().year - input_data["year_built"]
     input_data["bed_bath_ratio"] = input_data["bedrooms"] / input_data["bathrooms"]
@@ -57,7 +57,7 @@ def batch_predict(requests: list[HousePredictionRequest]) -> list[float]:
     if not requests:
         return []
 
-    input_data = pd.DataFrame([req.model_dump() if hasattr(req, 'model_dump') else req.dict() for req in requests])
+    input_data = pd.DataFrame([req.model_dump() if hasattr(req, "model_dump") else req.dict() for req in requests])
     input_data["house_age"] = datetime.now().year - input_data["year_built"]
     input_data["bed_bath_ratio"] = input_data["bedrooms"] / input_data["bathrooms"]
     input_data["price_per_sqft"] = 0  # Dummy value for compatibility
