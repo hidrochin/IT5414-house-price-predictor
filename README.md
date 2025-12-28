@@ -61,7 +61,7 @@ cd IT5414-house-price-predictor
 
 ```bash
 # Sử dụng Conda (khuyến nghị)
-conda create -n it5414 python=3.10
+conda create -n it5414 python=3.11
 conda activate it5414
 
 # Cài đặt dependencies
