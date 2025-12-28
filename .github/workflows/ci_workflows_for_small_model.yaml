@@ -146,13 +146,19 @@ jobs:
 
             - name: Build and Test Docker image
               run: |
-                COMMIT_HASH=$(echo ${{ github.sha }} | cut -c1-7)
-                docker build -t docker.io/${{echo {{ secrets.DOCKERHUB_USERNAME }} | tr '[:upper:]' '[:lower:]') }}/house-price-model:$COMMIT_HASH -f Dockerfile .
-                docker run -d -p 8000:8000 --name test-api docker.io/${{ vars.DOCKERHUB_USERNAME }}/house-price-model:$COMMIT_HASH
+                COMMIT_HASH=$(echo "${GITHUB_SHA}" | cut -c1-7)
+                USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+
+                IMAGE_NAME=docker.io/${USERNAME}/house-price-model:${COMMIT_HASH}
+
+                docker build -t $IMAGE_NAME -f Dockerfile .
+                docker run -d -p 8000:8000 --name test-api $IMAGE_NAME
+
                 for i in {1..10}; do
-                  curl -f http://localhost:8000/health && break || sleep 5;
+                  curl -f http://localhost:8000/health && break || sleep 5
                 done
-                docker log test-api || true
+
+                docker logs test-api || true
 
             - name: Clean up Test Docker container
               run: |
