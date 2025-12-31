@@ -147,7 +147,7 @@ jobs:
             - name: Build and Test Docker image
               run: |
                 COMMIT_HASH=$(echo "${GITHUB_SHA}" | cut -c1-7)
-                USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+                USERNAME=$(echo "${{ vars.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
 
                 IMAGE_NAME=docker.io/${USERNAME}/house-price-model:${COMMIT_HASH}
 
